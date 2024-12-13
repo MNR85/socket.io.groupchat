@@ -74,11 +74,15 @@
     </form>
     <script src="/socket.io/socket.io.js"></script>
     <script>
+        let counter=0;
         const socket = io({
             auth: {
                 roomName: null,
                 msgOffset: 0
-            }
+            },
+            // enable retries
+            ackTimeout:10000,
+            retries:3
         });
 
         const form = document.getElementById('form');
@@ -103,7 +107,8 @@
         form.addEventListener('submit', (e) => {
             e.preventDefault();
             if (input.value) {
-                socket.emit('chat message', input.value, room.value);
+                let clientOffset = socket.id-(counter++);
+                socket.emit('chat message', input.value, room.value, clientOffset);
                 input.value = '';
             }
         });

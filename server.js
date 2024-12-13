@@ -25,8 +25,8 @@ io.on("connection", (socket) => {
             socket.join(socket.handshake.auth.roomName)
             console.log("Recovering room", socket.id, socket.handshake.auth.roomName, socket.handshake.auth.msgOffset, (msgOffset))
             for (let i = socket.handshake.auth.msgOffset + 1; i <= msgOffset; i++) {
-                client.get(i + "").then(msg => {
-                    console.log("Sending buffered msg", i)
+                client.get(i + socket.handshake.auth.roomName).then(msg => {
+                    console.log("Sending buffered msg", JSON.stringify(msg), i)
                     socket.emit("chat message", JSON.stringify(msg), i)
                 })
 
@@ -41,7 +41,7 @@ io.on("connection", (socket) => {
         }
     socket.on("chat message", (msg, room, clientOffset, callBack) => {
         io.to(room).emit("chat message", msg, ++msgOffset)
-        client.set(msgOffset + "", msg, clientOffset).then().catch(err => {
+        client.set(msgOffset +room, msg, clientOffset).then().catch(err => {
             console.log("error while storing in redis", err, msg, room);
             callBack();
         });
