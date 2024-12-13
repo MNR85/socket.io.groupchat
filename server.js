@@ -27,7 +27,7 @@ io.on("connection", (socket) => {
             for (let i = socket.handshake.auth.msgOffset + 1; i <= msgOffset; i++) {
                 client.get(i + "").then(msg => {
                     console.log("Sending buffered msg", i)
-                    socket.emit("chat message", JSON.stringify(msg))
+                    socket.emit("chat message", JSON.stringify(msg), i)
                 })
 
             }
@@ -39,10 +39,11 @@ io.on("connection", (socket) => {
             counter++
             socket.emit("rooms", rooms);
         }
-    socket.on("chat message", (msg, room) => {
+    socket.on("chat message", (msg, room, clientOffset, callBack) => {
         io.to(room).emit("chat message", msg, ++msgOffset)
-        client.set(msgOffset + "", msg).then().catch(err => {
+        client.set(msgOffset + "", msg, clientOffset).then().catch(err => {
             console.log("error while storing in redis", err, msg, room);
+            callBack();
         });
     });
     socket.onAny((eventName, ...args) => {
